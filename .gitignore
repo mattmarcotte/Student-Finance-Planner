@@ -1,0 +1,18 @@
+# Dependencies and Next.js output
+/node_modules/
+/.next/
+/out/
+/coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment and OAuth credentials
+.env*
+!.env.example
+client_secret*.json
+credentials*.json
+
+# Local deployment and editor state
+.vercel/
+.DS_Store
+*.log
