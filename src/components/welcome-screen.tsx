@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Brand } from "./brand";
+import { SiteHeader } from "./site-header";
 import { AuthCard } from "./auth-card";
 
 export function WelcomeScreen({ mode, errorCode }: {
@@ -8,27 +8,28 @@ export function WelcomeScreen({ mode, errorCode }: {
 }) {
   return (
     <div className="welcome-page">
-      <header className="site-header">
-        <Brand />
-        <span className="header-note">A little foresight. A lot less guesswork.</span>
+      <SiteHeader>
         <Link className="header-link" href={mode === "login" ? "/login?mode=signup" : "/login"}>
-          {mode === "login" ? "Create an account" : "Log in"}<span aria-hidden="true">↗</span>
+          {mode === "login" ? "Sign up" : "Log in"}<span aria-hidden="true">↗</span>
         </Link>
-      </header>
+      </SiteHeader>
       <main id="main" className="welcome-main">
         <div className="welcome-copy">
-          <p className="eyebrow"><span className="status-dot" />FOR LIFE BETWEEN PAYDAYS</p>
-          <h1>Big plans.<br />A little more<br /><em>breathing room.</em></h1>
-          <p className="hero-description">Student life doesn’t run on a regular paycheque. Get a little clarity on what’s coming in, what’s going out, and what comes next.</p>
-          <div className="preview-note">
-            <span className="preview-icon" aria-hidden="true">↗</span>
-            <div><strong>Your next chapter starts here.</strong><span>We’re building a simpler way to plan ahead.</span></div>
+          <h1>Accounts.<br />Events.<br /><em>Forecasts.</em></h1>
+          <p className="hero-description">Track account balances and schedule income and expenses. Select a calendar date to see your projected balance.</p>
+          <div className="outlook-preview">
+            <div className="outlook-heading"><span>BALANCE FORECAST</span><span>EXAMPLE</span></div>
+            <svg className="outlook-chart" viewBox="0 0 440 78" fill="none" aria-hidden="true">
+              <path className="chart-guide" d="M0 65h440M0 33h440" />
+              <path className="chart-history" d="m0 57 31-5 24 7 35-19 26 8 29-13 29 5 27-15 23 10 22-9" />
+              <path className="chart-projection" d="m246 26 24 8 30-15 25 10 33-18 31 6 31-13 20 3" />
+              <circle className="chart-point" cx="246" cy="26" r="3.5" />
+            </svg>
+            <div className="outlook-caption"><span>STARTING BALANCE</span><span>PROJECTED BALANCE</span></div>
           </div>
-          <div className="hero-tags"><span>Made for students</span><span>Built around real life</span></div>
         </div>
         <div className="welcome-form"><AuthCard key={mode} initialMode={mode} errorCode={errorCode} /></div>
       </main>
-      <footer className="site-footer"><span>Make a little room for your future.</span><span>buffer. / early access</span></footer>
     </div>
   );
 }

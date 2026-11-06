@@ -1,13 +1,13 @@
 # Buffer — Student Finance Planner
 
-A small Next.js App Router starter for the student finance planner. It includes
-a responsive welcome/signup page, a Google login page, and a protected placeholder
-dashboard. **Buffer** is the working name and can be changed in the brand component
+A Next.js App Router app for student financial planning. It includes a responsive
+welcome/signup page, Google login, and a protected manual-account calendar and
+forecast workspace. **Buffer** is the working name and can be changed in the brand component
 and page metadata.
 
 ## Run locally
 
-Use Node.js 22 and npm.
+Use a recent Node.js 22 release (22.18 or newer) and npm.
 
 ```sh
 npm ci
@@ -70,6 +70,23 @@ client secret belongs in Supabase, not in Next.js public variables. `.env*`,
 Google `client_secret*.json` files, and Vercel local state are ignored by Git.
 Do not add a Supabase secret/service-role key to this frontend.
 
+## Appearance
+
+The interface uses a shared light/dark palette with graphite and off-white
+surfaces, green accents, and monospace labels. Buffer's name and original logo
+are retained. The header offers Light, Dark, and System modes. System follows
+the device preference; manual choices are saved in this browser's local storage
+under `buffer-theme` and restored before the page is painted. The preference
+persists across routes and reloads, without writing anything to Supabase.
+
+Theme colors are centralized as semantic variables in `src/app/globals.css`.
+The same palette applies to the welcome, login, dashboard, and error pages.
+No additional dependencies are required.
+
+Interface copy uses direct labels and short status messages. The dashboard keeps
+accounts, calendar controls, and forecasts prominent; forecast assumptions are
+available under Calculation details.
+
 ## Routes and authentication
 
 | Route | Behavior |
@@ -78,7 +95,7 @@ Do not add a Supabase secret/service-role key to this frontend.
 | `/login` | Google login; signed-in users go to `/dashboard` |
 | `/signup` | Redirects to signup mode on `/login` |
 | `/auth/callback` | Exchanges the OAuth code and saves session cookies |
-| `/dashboard` | Verifies the Auth user server-side and reads their own profile |
+| `/dashboard` | Verifies the Auth user, then loads their own accounts and event schedules |
 
 `src/proxy.ts` refreshes auth cookies on login and dashboard requests, and sets
 private/no-store cache headers. The dashboard verifies the user with `getUser()`;
@@ -90,10 +107,46 @@ redirects to `/dashboard`; arbitrary redirect destinations are not accepted.
 If Supabase environment variables are missing, public pages still render with
 Google sign-in disabled, and the dashboard remains inaccessible.
 
-The dashboard is intentionally a placeholder. It displays the signed-in account
-and profile preferences. Account balances, event editing, and forecasts are not
-implemented in the interface yet. Existing database setup is documented in
-[`supabase/README.md`](supabase/README.md).
+## Accounts, calendar, and forecasts
+
+- Add any number of manual chequing/checking, savings, cash, or other accounts.
+  Supported currencies are CAD, USD, EUR, and GBP; totals stay separate by currency.
+- Edit an account's name, type, starting balance, and balance date. Currency stays
+  fixed after creation. Deleting an account requires confirmation and also deletes
+  its linked schedules.
+- A starting balance is the balance at the **start** of its date, before that day's
+  planned events. Updating it rebases the forecast. Dates before that baseline
+  show an unavailable forecast rather than an invented historical balance.
+- Select a calendar date to inspect the projected **end-of-day** balance, income,
+  expenses, and events. Filter by account, navigate months, or jump to a date.
+- Each date has a separate `+` button for adding an event. It does not change the
+  selected forecast date. The date button and add button are siblings, not nested.
+  Blank cell space also selects the date; event chips open the relevant schedule.
+- Events support once, daily, weekly, every two weeks, monthly, yearly, and custom
+  intervals, with an optional inclusive end date. End of month follows the last
+  calendar day of each scheduled month, including February 29 in leap years;
+  selecting it adjusts the first occurrence to that month's end. Custom intervals
+  also support month ends (for example, every three months). Monthly/yearly dates clamp to
+  the last valid day of shorter months while preserving the original anchor.
+- Event type, account type, currency, and custom recurrence periods use visible
+  radio choices with keyboard support. Account and frequency lists use dropdowns.
+- Edit, pause, or delete schedules from a calendar chip, the selected-day list,
+  or Schedules. Editing or deleting a recurring schedule affects the entire series;
+  single-occurrence exceptions are not implemented yet.
+
+Account and event mutations are authenticated, validated Server Actions. Database
+RLS and a composite foreign key enforce ownership and account/event currency
+consistency. Financial values are computed in exact integer cents. Recurrences
+are counted arithmetically, without generating years of future transaction rows.
+The server paginates account/event reads to avoid the Data API's per-request cap.
+
+Data is persisted in Supabase, not local storage. Browser state updates only after
+a successful save. Reloading fetches saved records; other browser tabs see changes
+on reload. Calendar dates use the profile's timezone, currently UTC by default.
+Plaid, automatic bank syncing, transfers, percentage interest, and exchange-rate
+conversion are not part of this version.
+
+Database setup is documented in [`supabase/README.md`](supabase/README.md).
 
 ## Checks
 
@@ -103,7 +156,7 @@ npm run typecheck
 npm test
 ```
 
-`npm test` starts a production server on `127.0.0.1:3101`, verifies public pages,
+`npm test` includes forecast/input-validation tests and starts a production server on `127.0.0.1:3101` to verify public pages,
 signed-out and forged-session rejection, failed/cancelled OAuth callbacks, safe
 redirects, and the 404 page, then stops it. Build first. Successful Google login,
 session refresh, and sign-out should also be tested in a browser with your real

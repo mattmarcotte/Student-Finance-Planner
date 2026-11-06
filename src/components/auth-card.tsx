@@ -16,9 +16,9 @@ function GoogleIcon() {
 }
 
 const errors: Record<string, string> = {
-  cancelled: "Sign-in was cancelled. You can try again whenever you’re ready.",
+  cancelled: "Sign-in cancelled. Try again.",
   callback_failed: "We couldn’t finish signing you in. Please try again with Google.",
-  unavailable: "Sign-in isn’t available just yet. Please try again soon.",
+  unavailable: "Sign-in is currently unavailable.",
 };
 
 export function AuthCard({
@@ -60,12 +60,11 @@ export function AuthCard({
         </button>
       </div>
       <div className="card-content">
-        <span className="small-label">A LITTLE SPACE TO PLAN</span>
-        <h2 id="auth-heading">{mode === "signup" ? "Make room for what’s next." : "Good to have you back."}</h2>
+        <h2 id="auth-heading">{mode === "signup" ? "Create an account" : "Log in"}</h2>
         <p className="card-description">
           {mode === "signup"
-            ? "Create your free account and take the first step toward a clearer financial future."
-            : "Sign in to your space. Your plans will be right here as Buffer grows."}
+            ? "Sign up for free with Google."
+            : "Access your accounts and schedules."}
         </p>
         <button
           className="google-button"
@@ -83,17 +82,7 @@ export function AuthCard({
             <p className="auth-error" role="alert">{error || errors.unavailable}</p>
           )}
         </div>
-        <p className="google-note">One Google account. No extra password to remember.</p>
-        <div className="card-divider" />
-        <div className="trust-line">
-          <svg width="17" height="19" viewBox="0 0 20 22" fill="none" aria-hidden="true">
-            <path d="m10 2 7 3v5c0 5-7 9-7 9s-7-4-7-9V5l7-3Z" stroke="currentColor" strokeWidth="1.5" />
-            <path d="m7 10 2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span>Your space is private. Your pace is yours.</span>
-        </div>
       </div>
-      <div className="card-footer"><span className="status-dot" />Free to start. Built for student life.</div>
     </section>
   );
 }

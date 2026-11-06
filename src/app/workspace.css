@@ -1,0 +1,187 @@
+/* Calendar workspace: shared semantic colors support both light and dark mode. */
+.finance-main { width: 100%; max-width: 1540px; margin: 0 auto; padding: 24px 4.5% 54px; flex: 1; }
+.workspace-header { min-height: 76px; padding-top: 14px; padding-bottom: 14px; }
+.finance-title-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+.finance-title-row h1 { font-size: 24px; letter-spacing: -.7px; line-height: 1.2; }
+.workspace-notice { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.workspace-notice:not(:empty) { margin: -6px 0 18px; }
+.finance-layout { display: grid; grid-template-columns: 205px minmax(0, 1fr) 265px; gap: 18px; align-items: start; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+.section-heading h2, .section-heading h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; font-weight: 500; letter-spacing: -.1px; }
+.count-badge { padding: 3px 5px; border-radius: 3px; font: 9px/1.2 var(--mono); color: var(--muted); background: var(--surface-muted); }
+.solid-button, .outline-button, .subtle-button, .danger-button { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 38px; padding: 9px 13px; border: 1px solid transparent; border-radius: 5px; font-size: 12px; font-weight: 500; line-height: 1.4; }
+.solid-button { background: var(--accent); color: var(--accent-ink); }
+.solid-button:hover:not(:disabled) { filter: brightness(1.08); }
+.outline-button { border-color: var(--line-strong); background: var(--surface); color: var(--ink); }
+.subtle-button { border-color: var(--line); background: var(--surface-muted); color: var(--ink); }
+.outline-button:hover:not(:disabled), .subtle-button:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--line-strong); }
+.icon-button { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 19px; flex-shrink: 0; padding: 0; }
+.icon-button:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent); border-color: var(--line-strong); }
+.inline-link { padding: 0; background: none; border: 0; font: 10px/1.6 var(--mono); color: var(--accent); text-align: left; }
+.workspace-page-error { margin: 10px 5%; }
+.assignment-note { border: 1px solid var(--line-strong); border-radius: 5px; padding: 12px; margin-bottom: 20px; font-size: 12px; line-height: 1.7; color: var(--muted); }
+.assignment-note .inline-link { margin-left: 6px; }
+
+.accounts-panel, .calendar-panel, .forecast-panel { min-width: 0; }
+.accounts-panel { padding: 17px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; }
+.accounts-panel .section-heading { margin-bottom: 14px; }
+.all-accounts { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 10px; background: transparent; border: 1px solid var(--line); padding: 12px 10px; border-radius: 5px; color: var(--muted); font-size: 12px; }
+.all-accounts.is-active { background: var(--accent-soft); color: var(--accent); border-color: var(--line-strong); }
+.account-list-caption { font: 8px/1.7 var(--mono); color: var(--subtle); margin: 19px 0 11px; }
+.account-list { display: grid; gap: 8px; max-height: 580px; overflow-y: auto; }
+.account-card { position: relative; border: 1px solid var(--line); border-radius: 5px; }
+.account-card.is-active { border-color: var(--accent); background: var(--accent-soft); }
+.account-select { display: block; width: 100%; padding: 13px 10px; border: 0; background: transparent; color: var(--ink); text-align: left; border-radius: inherit; }
+.account-card-name { display: flex; align-items: center; gap: 7px; font-size: 11px; margin-right: 20px; overflow-wrap: anywhere; }
+.account-dot { display: inline-block; width: 6px; height: 6px; border-radius: 2px; flex-shrink: 0; background: var(--accent); }
+.dot-1 { background: #81a7cf; }.dot-2 { background: #c29c62; }.dot-3 { background: #b58abf; }
+.account-card-balance { display: block; margin: 12px 0 8px; font: 17px/1.3 var(--mono); letter-spacing: -.7px; overflow-wrap: anywhere; }
+.account-card-balance small { font-size: 8px; margin-left: 6px; letter-spacing: 0; color: var(--subtle); }
+.account-card-meta { display: block; color: var(--muted); font-size: 9px; line-height: 1.6; }
+.account-edit { position: absolute; top: 5px; right: 4px; width: 27px; height: 28px; border: 0; background: transparent; border-radius: 3px; color: var(--muted); font-size: 19px; }
+.account-edit:hover { background: var(--surface-hover); color: var(--ink); }
+.add-account-button { margin-top: 14px; width: 100%; font-size: 11px; }
+.accounts-empty { padding: 24px 0 14px; }
+.empty-symbol { color: var(--accent); font: 20px var(--mono); }
+.accounts-empty h3 { font-size: 13px; font-weight: 500; margin: 17px 0 0; }
+
+.calendar-panel { border: 1px solid var(--line-strong); border-radius: 7px; background: var(--surface); overflow: hidden; }
+.calendar-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 18px 20px; }
+.calendar-toolbar .small-label { font-size: 8px; }
+.calendar-toolbar h2 { font-size: 23px; font-weight: 500; letter-spacing: -.7px; margin: 7px 0 0; }
+.calendar-navigation { display: flex; align-items: center; gap: 5px; }
+.calendar-navigation .icon-button { font-size: 23px; width: 29px; }
+.today-button { min-height: 30px; padding: 5px 9px; font-size: 10px; margin-right: 5px; }
+.mobile-forecast-readout { display: none; }
+.finance-calendar { width: 100%; table-layout: fixed; border-collapse: collapse; }
+.finance-calendar th { padding: 12px 0; font: 9px/1.4 var(--mono); color: var(--muted); font-weight: 400; border-top: 1px solid var(--line); background: var(--surface-muted); }
+.calendar-day { position: relative; height: 94px; vertical-align: top; border: 1px solid var(--line); padding: 0; cursor: pointer; }
+.calendar-day:first-child { border-left: 0; }.calendar-day:last-child { border-right: 0; }
+.calendar-day.outside-month { background: var(--surface-muted); }
+.outside-month .day-number { color: var(--subtle); }
+.calendar-day.selected-day { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.day-select { position: absolute; top: 0; left: 0; width: calc(100% - 29px); height: 32px; padding: 7px; border: 0; background: transparent; border-radius: 0; color: var(--ink); text-align: left; display: flex; align-items: center; }
+.day-select:hover { background: var(--accent-soft); }
+.day-select:focus-visible { outline-offset: -3px; }
+.day-number { font: 11px/1.5 var(--mono); min-width: 19px; }
+.today .day-number { color: var(--accent); font-weight: 700; border-bottom: 1px solid var(--accent); }
+.day-add { position: absolute; top: 7px; right: 5px; z-index: 2; display: grid; place-items: center; width: 21px; height: 21px; padding: 0; color: var(--accent); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; font: 15px/1 var(--mono); }
+.day-add:hover:not(:disabled) { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.day-add:disabled { cursor: not-allowed; opacity: .3; }
+.calendar-events { position: relative; z-index: 1; margin: 35px 4px 20px; display: grid; gap: 3px; pointer-events: none; }
+.calendar-event { display: flex; align-items: center; gap: 4px; pointer-events: auto; min-width: 0; width: 100%; padding: 4px; border: 0; border-radius: 3px; background: var(--surface-muted); color: var(--ink); text-align: left; font-size: 9px; line-height: 1.2; }
+.calendar-event:hover { outline: 1px solid var(--line-strong); }
+.event-dot, .legend-dot { display: inline-block; width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; }
+.income .event-dot, .legend-dot.income { background: var(--accent); }.expense .event-dot, .legend-dot.expense { background: #d59779; }
+.calendar-event-label { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.more-events { pointer-events: auto; width: fit-content; padding: 0; border: 0; background: none; color: var(--muted); font-size: 8px; line-height: 1.5; }
+.calendar-bottom { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 15px 17px; color: var(--muted); font-size: 9px; }
+.calendar-bottom > span { display: flex; align-items: center; gap: 6px; }
+.calendar-bottom .legend-dot.expense { margin-left: 8px; }
+
+.forecast-panel { padding: 17px 15px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
+.jump-to-date { display: grid; gap: 8px; margin: 0 0 24px; font: 10px/1.6 var(--mono); color: var(--muted); }
+.jump-to-date input { width: 100%; min-width: 0; }
+.forecast-summary > .small-label { font-size: 8px; }
+.forecast-scope { font-size: 10px; color: var(--muted); line-height: 1.6; margin: 6px 0 16px; }
+.forecast-currency { border-top: 1px solid var(--line); padding: 18px 0 4px; }
+.forecast-currency + .forecast-currency { margin-top: 15px; }
+.currency-tag { color: var(--muted); font: 9px/1.5 var(--mono); letter-spacing: .5px; }
+.forecast-amount { display: block; color: var(--ink); font: 26px/1.4 var(--mono); letter-spacing: -1px; margin: 7px 0 20px; overflow-wrap: anywhere; }
+.forecast-breakdown { display: grid; gap: 11px; margin: 0; font-size: 10px; }
+.forecast-breakdown div { display: flex; justify-content: space-between; gap: 10px; }
+.forecast-breakdown dt { color: var(--muted); }.forecast-breakdown dd { margin: 0; font-family: var(--mono); text-align: right; overflow-wrap: anywhere; }
+.positive { color: var(--accent); }.negative { color: var(--error-ink); }
+.day-events-section { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 23px; }
+.day-events-section .section-heading { margin-bottom: 13px; }
+.selected-events { display: grid; gap: 8px; }
+.selected-event { display: flex; justify-content: space-between; align-items: flex-start; gap: 9px; width: 100%; padding: 10px 0; border: 0; border-bottom: 1px solid var(--line); background: none; text-align: left; color: var(--ink); }
+.selected-event strong { display: block; font-size: 11px; font-weight: 500; overflow-wrap: anywhere; }
+.selected-event small { display: block; color: var(--muted); font-size: 9px; line-height: 1.7; margin-top: 5px; }
+.selected-event > span:last-child { font: 10px/1.6 var(--mono); white-space: nowrap; }
+.forecast-details { color: var(--muted); font-size: 10px; line-height: 1.8; border-top: 1px solid var(--line); padding-top: 15px; margin-top: 18px; }
+.forecast-details summary { cursor: pointer; width: fit-content; }
+.forecast-details summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.forecast-details p { margin: 10px 0 0; }
+.empty-note, .forecast-empty { color: var(--muted); font-size: 11px; line-height: 1.9; }
+
+.workspace-modal { width: min(490px, calc(100vw - 30px)); max-height: calc(100svh - 35px); padding: 0; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface); color: var(--ink); box-shadow: 0 25px 100px #0005; }
+.workspace-modal::backdrop { background: #090e0bc0; backdrop-filter: blur(4px); }
+.modal-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 18px 23px; border-bottom: 1px solid var(--line); }
+.modal-heading h2 { margin: 0; font-size: 20px; letter-spacing: -.5px; font-weight: 500; }
+.workspace-form { padding: 22px 23px; }
+.workspace-form fieldset { display: grid; gap: 17px; padding: 0; margin: 0; border: 0; min-width: 0; }
+.workspace-form label { display: grid; gap: 8px; font-size: 11px; color: var(--muted); min-width: 0; line-height: 1.6; }
+.workspace-form input, .workspace-form select, .jump-to-date input { display: block; min-height: 40px; padding: 9px 10px; border: 1px solid var(--line-strong); border-radius: 5px; background: var(--background); color: var(--ink); font: 12px/1.6 var(--sans); }
+.workspace-form input:focus, .workspace-form select:focus, .jump-to-date input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.workspace-form input:disabled, .workspace-form select:disabled { opacity: .55; }
+.workspace-form fieldset.choice-field { display: block; min-width: 0; }
+.choice-field legend { padding: 0; margin-bottom: 8px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.choice-options { display: flex; flex-wrap: wrap; gap: 5px; }
+.workspace-form label.choice-option { position: relative; display: flex; flex: 1 1 60px; cursor: pointer; }
+.workspace-form .choice-option input { position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; opacity: 0; }
+.choice-option span { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 40px; padding: 8px; border: 1px solid var(--line-strong); border-radius: 5px; color: var(--muted); background: var(--background); font-size: 11px; line-height: 1.5; white-space: nowrap; }
+.choice-option input:checked + span { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.choice-option input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.choice-option:hover input:not(:disabled) + span { border-color: var(--accent); }
+.choice-option input:disabled + span { opacity: .55; cursor: not-allowed; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field-help { font-size: 11px; color: var(--muted); line-height: 1.8; margin: -3px 0 0; }
+.workspace-form .checkbox-label { display: flex; align-items: center; gap: 9px; }
+.checkbox-label input { display: inline-block; min-height: 0; width: 15px; height: 15px; accent-color: var(--accent); }
+.modal-actions { display: flex; justify-content: flex-end; align-items: center; gap: 9px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.text-danger { padding: 5px 0; border: 0; background: none; color: var(--error-ink); font-size: 10px; margin-right: auto; }
+.delete-warning { border: 1px solid var(--error-line); border-radius: 5px; padding: 13px; background: var(--error-surface); color: var(--error-ink); font-size: 12px; line-height: 1.7; }
+.delete-warning p { margin: 7px 0 12px; font-size: 11px; }
+.danger-button { background: var(--error-ink); color: var(--surface); border-color: var(--error-ink); }
+.button-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.schedule-list { display: grid; padding: 10px 23px 22px; }
+.schedule-list-item { width: 100%; display: flex; justify-content: space-between; gap: 15px; align-items: center; padding: 17px 0; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--ink); text-align: left; }
+.schedule-list-item strong { font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
+.schedule-list-item small { display: block; color: var(--muted); font-size: 10px; line-height: 1.8; margin-top: 5px; }
+.event-status { color: var(--accent); font: 9px var(--mono); white-space: nowrap; }.event-status.paused { color: var(--muted); }
+
+@media (max-width: 1180px) {
+  .finance-layout { grid-template-columns: minmax(0, 1fr) 265px; }
+  .accounts-panel { grid-column: 1 / -1; padding: 16px; }
+  .account-list { display: flex; overflow-x: auto; max-height: none; padding-bottom: 3px; }
+  .account-card { min-width: 210px; max-width: 250px; flex: 1; }
+  .all-accounts { width: fit-content; min-width: 150px; }
+  .accounts-panel .section-heading { margin-bottom: 12px; }
+  .account-list-caption { margin: 14px 0 10px; }
+  .add-account-button { width: fit-content; }
+  .accounts-empty { padding: 4px 0 8px; }.accounts-empty .empty-symbol { display: none; }.accounts-empty h3 { margin-top: 0; }
+}
+@media (max-width: 820px) {
+  .mobile-forecast-readout { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 12px; background: var(--accent-soft); border-top: 1px solid var(--line); color: var(--accent); font: 10px/1.6 var(--mono); }
+  .mobile-forecast-readout strong { font-weight: 500; overflow-wrap: anywhere; }
+  .finance-main { padding: 20px 5% 40px; }
+  .finance-layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .finance-title-row h1 { font-size: 23px; }
+  .forecast-panel { padding: 21px; }
+  .forecast-summary { display: block; }
+  .forecast-amount { font-size: 30px; }
+  .forecast-breakdown { font-size: 12px; }
+  .calendar-day { height: 95px; }
+  .day-select { padding: 8px 5px; }
+}
+@media (max-width: 480px) {
+  .event-amount-row { grid-template-columns: 1fr; }
+  .finance-main { padding: 16px 4% 30px; }
+  .finance-title-row h1 { font-size: 22px; }
+  .finance-title-row > .solid-button { font-size: 10px; padding: 8px 10px; }
+  .workspace-notice { font-size: 11px; }
+  .calendar-toolbar { padding: 16px 12px 13px; gap: 8px; }
+  .calendar-toolbar h2 { font-size: 20px; }
+  .calendar-navigation { gap: 3px; }.today-button { font-size: 9px; margin-right: 2px; padding: 5px 7px; }
+  .calendar-navigation .icon-button { width: 25px; }
+  .finance-calendar th { font-size: 8px; padding: 10px 0; }
+  .calendar-day { height: 88px; }.day-add { top: 7px; right: 3px; width: 19px; height: 19px; font-size: 14px; }
+  .day-number { font-size: 10px; }.day-select { padding: 8px 4px; }
+  .calendar-events { margin: 32px 2px 18px; gap: 3px; }
+  .calendar-event { font-size: 8px; padding: 3px 2px; gap: 2px; }.event-dot { width: 3px; height: 3px; }
+  .more-events { font-size: 7px; }
+  .calendar-bottom { padding: 12px 10px; font-size: 8px; }.calendar-bottom .inline-link { font-size: 9px; }
+  .modal-heading { padding: 16px 19px; }.workspace-form { padding: 19px; }
+  .modal-actions { gap: 7px; }.modal-actions > button { font-size: 11px; }
+}

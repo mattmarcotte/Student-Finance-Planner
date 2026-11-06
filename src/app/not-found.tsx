@@ -1,5 +1,5 @@
 import Link from "next/link";
 
 export default function NotFoundPage() {
-  return <main id="main" className="fallback-page"><span className="small-label">404 / A LITTLE OFF TRACK</span><h1>Nothing here just yet.</h1><p>Let’s get you back to a little more clarity.</p><Link className="primary-button" href="/">Back to Buffer</Link></main>;
+  return <main id="main" className="fallback-page"><span className="small-label">404</span><h1>Page not found</h1><Link className="primary-button" href="/">Back to Buffer</Link></main>;
 }

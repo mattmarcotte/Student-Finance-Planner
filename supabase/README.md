@@ -8,8 +8,12 @@ Dashboard: https://supabase.com/dashboard/project/djnsqqyakevmkvvhvmvb
 
 `schema.sql` records the SQL applied through Supabase's migration API as
 `create_user_profiles`. `cash_flows.sql` records the subsequent
-`create_cash_flows` migration. These are SQL sources, not CLI-generated migration
-files. Both are already installed on the project; do not run them again there. Before using
+`create_cash_flows` migration. `accounts.sql` records the manual-account schema
+and event relationship added by `add_manual_accounts` and the covering-index
+follow-up `cover_owned_account_foreign_key`. `month_end.sql` records
+`add_month_end_recurrence`, which extends the allowed recurrence values without
+altering existing schedules. These are SQL sources, not CLI-generated migration
+files. All are already installed on the project; do not run them again there. Before using
 the Supabase CLI for future changes, link the project and pull the remote schema
 and migration history so that local and remote histories agree.
 
@@ -51,12 +55,13 @@ one Auth user can own many cash flows, linked by `user_id`.
 | --- | --- |
 | `id` | Automatically generated event UUID |
 | `user_id` | Auth owner UUID, defaults to the signed-in user |
+| `account_id` | Links to an account with the same owner and currency |
 | `label` | Required name, up to 200 characters |
 | `kind` | `income` or `expense` |
 | `amount` | Positive decimal amount, stored to two decimal places |
 | `currency` | Three uppercase letters; defaults to `CAD` |
 | `start_date` | Event date or first recurring occurrence |
-| `repeat_unit` | `null` for once; otherwise `day`, `week`, `month`, or `year` |
+| `repeat_unit` | `null` for once; otherwise `day`, `week`, `month`, `month_end`, or `year` |
 | `repeat_every` | `null` for once; positive interval for a recurring event |
 | `end_date` | Optional inclusive cutoff for a recurring event |
 | `is_active` | Defaults to `true`; set to `false` to exclude a paused rule |
@@ -97,13 +102,45 @@ the database default does not automatically track their profile preference.
 For listing, filter by `user_id`, use a stable order, and paginate as data grows
 rather than assuming one API response contains every event.
 
-The future forecast engine will expand each active rule only over the requested
-date range. Recurrences are inputs, not stored future occurrences or payments
-that run automatically. The forecast implementation should use calendar date
-arithmetic, preserve the original day anchor, clamp month/year dates to the last
-valid day when needed, and respect the inclusive end date. No forecast engine
-has been implemented yet. Account balances, per-account links, individual
-occurrence exceptions, and percentage interest are intentionally deferred.
+The forecast engine in `src/lib/finance.ts` counts active occurrences between an
+account's balance date and the selected date inclusively. It uses calendar date
+arithmetic, preserves the original anchor, clamps month/year dates to the last
+valid day when needed, and respects the inclusive end date. These are simulation
+inputs; the app does not execute payments. Individual occurrence exceptions and
+percentage interest are deferred.
+
+`month_end` follows the actual last day of each scheduled month, using
+`repeat_every` for custom month intervals. Application validation normalizes its
+first occurrence to the end of the chosen month. Ordinary `month` schedules keep
+their original day-of-month behavior; existing records are not converted.
+`tests/month_end.sql` verifies authenticated insert/read/update, invalid-frequency
+rejection, and cross-user isolation in a transaction that rolls back all test data.
+
+## Manual accounts
+
+`public.accounts` stores owner, name, kind, currency, `opening_balance`, and
+`balance_date`, plus database-managed IDs and timestamps. The balance represents
+the **start** of its date. Forecasts include events on that date, and omit events
+before it. Amounts use `numeric(14,2)` in Postgres and integer cents in application
+calculations. Negative starting balances are supported.
+
+Clients can manage only their own accounts through RLS. Currency, ownership,
+IDs, and timestamps cannot be changed by client updates. The composite foreign
+key `(account_id, user_id, currency)` on `cash_flows` references the matching
+account and prevents cross-user or cross-currency links. Deleting an account
+cascades to its events; deleting an Auth user cascades to accounts. Both deletes
+are explicit user actions, not part of routine application loading.
+
+Legacy events without an account remain valid and are shown for assignment in
+the workspace. They are excluded from forecasts until assigned. New application
+events always require an owned account. The database remains compatible with
+the initial optional-account rows and earlier rollback test scripts.
+
+`tests/accounts.sql` checks owner creation/read/update, 25 additional accounts,
+cross-user isolation and forged links, currency consistency, anonymous denial,
+and the defined cascade/delete policies. It performs no persistent deletions;
+all inserted test data is rolled back. Browser calendar/form checks use isolated
+sample data, not a live user's financial records.
 
 ## Next.js integration
 
