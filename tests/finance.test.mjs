@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { accountForecast, addMonths, calendarDays, endOfMonth, money, occurrencesThrough, occursOn, recurrenceLabel, toCents, validDate } from "../src/lib/finance.ts";
+import { accountForecast, accountForecastSeries, addMonths, calendarDays, endOfMonth, money, occurrencesThrough, occursOn, recurrenceLabel, toCents, validDate } from "../src/lib/finance.ts";
 import { validateAccount, validateCashFlow } from "../src/lib/finance-validation.ts";
 
 const account = { id: "account-a", name: "Chequing", kind: "checking", currency: "CAD", opening_balance: "1000.00", balance_date: "2026-11-05" };
@@ -85,6 +85,34 @@ test("accounts, currencies, inactive schedules, and unassigned events stay isola
   assert.equal(accountForecast({ ...account, opening_balance: "-25.01" }, [], "2026-11-20").balance, -2501n);
 });
 
+test("interest accrues on positive closing balances after each day's scheduled events", () => {
+  const savings = { ...account, annual_interest_rate: "3.650" };
+  const oneTime = { ...event, repeat_unit: null, repeat_every: null };
+  const events = [
+    { ...oneTime, kind: "expense", amount: "1200", start_date: "2026-11-06" },
+    { ...oneTime, kind: "expense", amount: "100", start_date: "2026-11-07" },
+    { ...oneTime, kind: "income", amount: "800", start_date: "2026-11-07" },
+  ];
+  assert.equal(accountForecast(savings, events, "2026-11-05").interest, 10n);
+  assert.equal(accountForecast(savings, events, "2026-11-06").interest, 10n);
+  const forecast = accountForecast(savings, events, "2026-11-08");
+  assert.equal(forecast.interest, 20n);
+  assert.equal(forecast.balance, 50020n);
+  assert.equal(accountForecast(account, events, "2026-11-08").interest, 0n);
+  const dates = ["2026-11-04", "2026-11-05", "2026-11-06", "2026-11-07", "2026-11-08"];
+  const series = accountForecastSeries(savings, events, dates);
+  assert.deepEqual(series.map(point => point?.balance ?? null), [null, 100010n, -19990n, 50015n, 50020n]);
+});
+
+test("interest honors recurring dates and accumulates fractional cents until display", () => {
+  const savings = { ...account, opening_balance: "10", balance_date: "2028-02-27", annual_interest_rate: 3.65 };
+  const monthEnd = { ...event, amount: "100", start_date: "2028-01-31", repeat_unit: "month_end", repeat_every: 1 };
+  assert.equal(accountForecast(savings, [monthEnd], "2028-02-28").interest, 0n);
+  assert.equal(accountForecast(savings, [monthEnd], "2028-02-29").interest, 1n);
+  assert.equal(accountForecast(savings, [monthEnd], "2028-03-01").interest, 2n);
+  assert.equal(accountForecast({ ...savings, opening_balance: "1000" }, [], "2029-02-25").interest, 3650n);
+});
+
 test("daily recurrence remains exact across DST and long forecast windows", () => {
   const daily = { ...event, start_date: "2026-10-31", repeat_unit: "day", repeat_every: 1 };
   assert.equal(occurrencesThrough(daily, "2026-11-03"), 4);
@@ -114,6 +142,11 @@ test("server input validation rejects malformed financial records", () => {
   assert.equal(validateAccount(accountInput).name, "Savings");
   assert.throws(() => validateAccount({ ...accountInput, opening_balance: "NaN" }));
   assert.throws(() => validateAccount({ ...accountInput, balance_date: "2026-02-30" }));
+  assert.equal(validateAccount({ ...accountInput, annual_interest_rate: "4.125" }).annual_interest_rate, 4.125);
+  assert.equal(validateAccount({ ...accountInput, annual_interest_rate: "" }).annual_interest_rate, 0);
+  for (const rate of ["-1", "100.001", "2.1234", "NaN", "1e1"]) {
+    assert.throws(() => validateAccount({ ...accountInput, annual_interest_rate: rate }));
+  }
   const input = { account_id: "00000000-0000-4000-8000-000000000001", label: "Rent", kind: "expense", amount: "900.00", start_date: "2026-11-05", repeat_unit: "month", repeat_every: 1, end_date: null, is_active: true };
   assert.equal(validateCashFlow(input).amount, "900.00");
   assert.throws(() => validateCashFlow({ ...input, repeat_every: 0 }));

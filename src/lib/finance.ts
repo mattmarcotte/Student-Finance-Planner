@@ -79,6 +79,16 @@ export function money(cents: bigint, currency: string) {
   return parts.map(part => part.type === "integer" ? whole : part.type === "fraction" ? fraction : part.value).join("");
 }
 
+function dayNumber(date: string) {
+  return Date.parse(`${date}T00:00:00Z`) / DAY;
+}
+
+function monthlyOccurrence(event: CashFlow, index: number) {
+  const monthInterval = (event.repeat_every ?? 1) * (event.repeat_unit === "year" ? 12 : 1);
+  const date = addMonths(event.start_date, index * monthInterval);
+  return event.repeat_unit === "month_end" ? endOfMonth(date) : date;
+}
+
 // Number of occurrences through an inclusive date. Constant time, even years out.
 export function occurrencesThrough(event: CashFlow, through: string): number {
   if (!event.is_active || through < event.start_date) return 0;
@@ -88,15 +98,14 @@ export function occurrencesThrough(event: CashFlow, through: string): number {
   const interval = event.repeat_every ?? 1;
   if (interval <= 0 || !Number.isInteger(interval)) return 0;
   if (event.repeat_unit === "day" || event.repeat_unit === "week") {
-    const days = Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${event.start_date}T00:00:00Z`)) / DAY);
+    const days = dayNumber(end) - dayNumber(event.start_date);
     return Math.floor(days / (interval * (event.repeat_unit === "week" ? 7 : 1))) + 1;
   }
   const monthInterval = interval * (event.repeat_unit === "year" ? 12 : 1);
   const startMonth = Number(event.start_date.slice(0, 4)) * 12 + Number(event.start_date.slice(5, 7));
   const endMonth = Number(end.slice(0, 4)) * 12 + Number(end.slice(5, 7));
   let index = Math.floor((endMonth - startMonth) / monthInterval);
-  const candidate = addMonths(event.start_date, index * monthInterval);
-  if ((event.repeat_unit === "month_end" ? endOfMonth(candidate) : candidate) > end) index--;
+  if (monthlyOccurrence(event, index) > end) index--;
   return Math.max(0, index + 1);
 }
 
@@ -105,21 +114,95 @@ export function occursOn(event: CashFlow, date: string) {
   return occurrencesThrough(event, date) > (date === "0001-01-01" ? 0 : occurrencesThrough(event, addDays(date, -1)));
 }
 
-export function accountForecast(account: Account, events: CashFlow[], date: string) {
-  if (date < account.balance_date) return null;
-  let income = 0n;
-  let expenses = 0n;
+function occurrenceDay(event: CashFlow, index: number) {
+  const interval = event.repeat_every ?? 1;
+  switch (event.repeat_unit) {
+    case null: return dayNumber(event.start_date);
+    case "day": return dayNumber(event.start_date) + index * interval;
+    case "week": return dayNumber(event.start_date) + index * interval * 7;
+    default: return dayNumber(monthlyOccurrence(event, index));
+  }
+}
+
+type InterestSchedule = {
+  event: CashFlow;
+  index: number;
+  endIndex: number;
+  nextDay: number;
+  change: bigint;
+};
+
+function positiveBalanceDays(opening: bigint, firstDay: number, schedules: InterestSchedule[]) {
+  let balance = opening;
+  let cursor = firstDay;
+  let total = 0n;
+  // Consecutive queries advance the same accrual state through the dates.
+  return (throughDay: number) => {
+    const end = throughDay + 1;
+    while (cursor < end) {
+      let nextDay = end;
+      for (const schedule of schedules) nextDay = Math.min(nextDay, schedule.nextDay);
+      if (balance > 0n) total += balance * BigInt(nextDay - cursor);
+      cursor = nextDay;
+      if (nextDay === end) break;
+
+      for (const schedule of schedules) {
+        if (schedule.nextDay !== nextDay) continue;
+        balance += schedule.change;
+        schedule.index++;
+        schedule.nextDay = schedule.index < schedule.endIndex
+          ? occurrenceDay(schedule.event, schedule.index)
+          : Infinity;
+      }
+    }
+    return total;
+  };
+}
+
+// Dates are in ascending order so the series can accrue interest in one pass.
+export function accountForecastSeries(account: Account, events: CashFlow[], dates: string[]) {
+  const lastDate = dates[dates.length - 1];
+  if (!lastDate || lastDate < account.balance_date) return dates.map(() => null);
+  const opening = toCents(account.opening_balance);
+  const rate = BigInt(Math.round(Number(account.annual_interest_rate ?? 0) * 1000));
+  const relevant: { event: CashFlow; firstIndex: number; amount: bigint }[] = [];
+  const schedules: InterestSchedule[] = [];
   const before = account.balance_date === "0001-01-01" ? null : addDays(account.balance_date, -1);
   for (const event of events) {
     if (event.account_id !== account.id || event.currency !== account.currency) continue;
-    const count = occurrencesThrough(event, date) - (before ? occurrencesThrough(event, before) : 0);
-    if (count <= 0) continue;
-    const amount = toCents(event.amount) * BigInt(count);
-    if (event.kind === "income") income += amount;
-    else expenses += amount;
+    const firstIndex = before ? occurrencesThrough(event, before) : 0;
+    const endIndex = occurrencesThrough(event, lastDate);
+    if (endIndex <= firstIndex) continue;
+    const amount = toCents(event.amount);
+    relevant.push({ event, firstIndex, amount });
+    if (rate > 0n) schedules.push({
+      event,
+      index: firstIndex,
+      endIndex,
+      nextDay: occurrenceDay(event, firstIndex),
+      change: event.kind === "income" ? amount : -amount,
+    });
   }
-  const opening = toCents(account.opening_balance);
-  return { opening, income, expenses, balance: opening + income - expenses };
+  const balanceDays = positiveBalanceDays(opening, dayNumber(account.balance_date), schedules);
+  // The rate is stored in thousandths of a percent. Round accrued interest once to cents.
+  const divisor = 365n * 100_000n;
+  return dates.map(date => {
+    if (date < account.balance_date) return null;
+    let income = 0n;
+    let expenses = 0n;
+    for (const entry of relevant) {
+      const count = occurrencesThrough(entry.event, date) - entry.firstIndex;
+      const amount = entry.amount * BigInt(count);
+      if (entry.event.kind === "income") income += amount;
+      else expenses += amount;
+    }
+    const interest = rate > 0n ? (balanceDays(dayNumber(date)) * rate + divisor / 2n) / divisor : 0n;
+    return { opening, income, expenses, interest, balance: opening + income - expenses + interest };
+  });
+}
+
+export function accountForecast(account: Account, events: CashFlow[], date: string) {
+  return accountForecastSeries(account, events, [date])[0];
 }
 
 export function recurrenceLabel(event: Pick<CashFlow, "repeat_unit" | "repeat_every">) {

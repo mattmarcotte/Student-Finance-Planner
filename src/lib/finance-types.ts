@@ -8,6 +8,7 @@ export type Account = {
   currency: string;
   opening_balance: string | number;
   balance_date: string;
+  annual_interest_rate: string | number;
 };
 
 export type CashFlow = {
@@ -31,6 +32,7 @@ export type AccountInput = {
   currency: string;
   opening_balance: string;
   balance_date: string;
+  annual_interest_rate?: string;
 };
 export type CashFlowInput = {
   id?: string;

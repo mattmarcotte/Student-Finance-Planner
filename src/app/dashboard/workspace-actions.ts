@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { InputError, requireId, validateAccount, validateCashFlow } from "@/lib/finance-validation";
 import type { Account, AccountInput, ActionResult, CashFlow, CashFlowInput } from "@/lib/finance-types";
 
-const accountFields = "id,name,kind,currency,opening_balance,balance_date";
+const accountFields = "id,name,kind,currency,opening_balance,balance_date,annual_interest_rate";
 const eventFields = "id,account_id,label,kind,amount,currency,start_date,repeat_unit,repeat_every,end_date,is_active";
 
 async function context() {
@@ -21,11 +21,11 @@ function failure(error: unknown) {
 export async function saveAccount(input: AccountInput): Promise<ActionResult<Account>> {
   try {
     const { supabase, user } = await context();
-    const values = validateAccount(input);
+    const { currency, ...values } = validateAccount(input);
     if (input.id) requireId(input.id);
     const query = input.id
-      ? supabase.from("accounts").update({ name: values.name, kind: values.kind, opening_balance: values.opening_balance, balance_date: values.balance_date }).eq("id", input.id).eq("user_id", user.id)
-      : supabase.from("accounts").insert({ ...values, user_id: user.id });
+      ? supabase.from("accounts").update(values).eq("id", input.id).eq("user_id", user.id)
+      : supabase.from("accounts").insert({ ...values, currency, user_id: user.id });
     const { data, error } = await query.select(accountFields).single<Account>();
     if (error || !data) throw new Error();
     return { data };

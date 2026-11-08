@@ -33,6 +33,17 @@ function requireAmount(value: unknown, positive: boolean) {
   return value.trim();
 }
 
+function requireInterestRate(value: unknown) {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string") throw new InputError("Enter a valid annual interest rate.");
+  const rate = value.trim();
+  if (!rate) return 0;
+  if (!/^(?:\d{1,3}(?:\.\d{0,3})?|\.\d{1,3})$/.test(rate) || Number(rate) > 100) {
+    throw new InputError("Enter an annual interest rate from 0 to 100%, with up to three decimal places.");
+  }
+  return Number(rate);
+}
+
 export function validateAccount(input: AccountInput) {
   if (!input || typeof input !== "object") throw new InputError("Enter your account details.");
   if (!(accountKinds as readonly string[]).includes(input.kind)) throw new InputError("Choose an account type.");
@@ -43,6 +54,7 @@ export function validateAccount(input: AccountInput) {
     currency: input.currency,
     opening_balance: requireAmount(input.opening_balance, false),
     balance_date: requireDate(input.balance_date, "balance date"),
+    annual_interest_rate: requireInterestRate(input.annual_interest_rate),
   };
 }
 

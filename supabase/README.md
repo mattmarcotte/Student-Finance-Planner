@@ -12,7 +12,8 @@ Dashboard: https://supabase.com/dashboard/project/djnsqqyakevmkvvhvmvb
 and event relationship added by `add_manual_accounts` and the covering-index
 follow-up `cover_owned_account_foreign_key`. `month_end.sql` records
 `add_month_end_recurrence`, which extends the allowed recurrence values without
-altering existing schedules. These are SQL sources, not CLI-generated migration
+altering existing schedules. `account_interest.sql` records
+`add_account_interest_rate`. These are SQL sources, not CLI-generated migration
 files. All are already installed on the project; do not run them again there. Before using
 the Supabase CLI for future changes, link the project and pull the remote schema
 and migration history so that local and remote histories agree.
@@ -71,7 +72,7 @@ A $450 paycheque every two weeks is one row with `kind = 'income'`,
 `amount = 450`, `repeat_unit = 'week'`, and `repeat_every = 2`.
 A one-time payment has all three scheduling fields (`repeat_unit`,
 `repeat_every`, `end_date`) set to `null`. Fixed interest credits can be ordinary
-income events. Percentage-based interest calculations can be added separately.
+income events. For a rate-based estimate, use the account's annual interest rate.
 
 RLS restricts select, insert, update, and delete to the signed-in owner. An
 explicitly forged `user_id` on insert is rejected. Clients cannot reassign
@@ -106,8 +107,7 @@ The forecast engine in `src/lib/finance.ts` counts active occurrences between an
 account's balance date and the selected date inclusively. It uses calendar date
 arithmetic, preserves the original anchor, clamps month/year dates to the last
 valid day when needed, and respects the inclusive end date. These are simulation
-inputs; the app does not execute payments. Individual occurrence exceptions and
-percentage interest are deferred.
+inputs; the app does not execute payments. Individual occurrence exceptions are deferred.
 
 `month_end` follows the actual last day of each scheduled month, using
 `repeat_every` for custom month intervals. Application validation normalizes its
@@ -123,6 +123,10 @@ rejection, and cross-user isolation in a transaction that rolls back all test da
 the **start** of its date. Forecasts include events on that date, and omit events
 before it. Amounts use `numeric(14,2)` in Postgres and integer cents in application
 calculations. Negative starting balances are supported.
+
+`annual_interest_rate` stores an annual percentage from 0 to 100 with three
+decimal places and defaults to 0. The forecast accrues simple interest on
+positive closing balances after each day's scheduled events.
 
 Clients can manage only their own accounts through RLS. Currency, ownership,
 IDs, and timestamps cannot be changed by client updates. The composite foreign

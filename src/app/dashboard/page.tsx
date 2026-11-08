@@ -33,7 +33,7 @@ export default async function DashboardPage({ searchParams }: {
 
   const [{ data: profile, error: profileError }, accounts, events, params] = await Promise.all([
     supabase.from("profiles").select("display_name,default_currency,timezone").eq("id", user.id).maybeSingle<Profile>(),
-    allRows<Account>("accounts", "id,name,kind,currency,opening_balance,balance_date"),
+    allRows<Account>("accounts", "id,name,kind,currency,opening_balance,balance_date,annual_interest_rate"),
     allRows<CashFlow>("cash_flows", "id,account_id,label,kind,amount,currency,start_date,repeat_unit,repeat_every,end_date,is_active"),
     searchParams,
   ]);
@@ -43,7 +43,7 @@ export default async function DashboardPage({ searchParams }: {
       <SiteHeader workspace><form action={signOut}><SignOutButton /></form></SiteHeader>
       {params.error === "signout_failed" && <p className="auth-error workspace-page-error" role="alert">We couldn’t sign you out. Please try again.</p>}
       {profileError && <p className="auth-error workspace-page-error" role="status">Profile preferences could not be loaded. Using CAD and UTC for now.</p>}
-      <FinanceWorkspace initialAccounts={accounts} initialEvents={events} today={todayInZone(timezone)} currency={profile?.default_currency ?? "CAD"} timezone={timezone} actions={{ saveAccount, deleteAccount, saveEvent, deleteEvent }} />
+      <FinanceWorkspace initialAccounts={accounts} initialEvents={events} today={todayInZone(timezone)} currency={profile?.default_currency ?? "CAD"} timezone={timezone} userId={user.id} actions={{ saveAccount, deleteAccount, saveEvent, deleteEvent }} />
     </div>
   );
 }

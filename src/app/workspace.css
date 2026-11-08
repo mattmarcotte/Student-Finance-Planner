@@ -6,6 +6,60 @@
 .workspace-notice { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
 .workspace-notice:not(:empty) { margin: -6px 0 18px; }
 .finance-layout { display: grid; grid-template-columns: 205px minmax(0, 1fr) 265px; gap: 18px; align-items: start; }
+.trajectory-panel { margin-bottom: 18px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
+.trajectory-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px 20px; flex-wrap: wrap; }
+.trajectory-header h2 { margin: 0; color: var(--ink); font-size: 17px; font-weight: 500; }
+.trajectory-header p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+.trajectory-controls, .trajectory-target { display: flex; align-items: flex-end; gap: 8px 12px; flex-wrap: wrap; }
+.trajectory-target { margin-top: 12px; }
+.trajectory-controls label, .trajectory-target label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; }
+.trajectory-controls input, .trajectory-controls select, .trajectory-target input {
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  background: var(--background);
+  color: var(--ink);
+  font: 12px var(--sans);
+}
+.trajectory-target input { width: 140px; }
+.trajectory-controls :is(input, select):focus-visible, .trajectory-target input:focus-visible, .trajectory-plot:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.trajectory-period { display: flex; gap: 3px; padding: 3px; border: 1px solid var(--line); border-radius: 5px; }
+.trajectory-period button { min-height: 26px; padding: 3px 9px; border: 0; border-radius: 3px; background: transparent; color: var(--muted); font-size: 11px; }
+.trajectory-period button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.trajectory-target p { margin: 0 0 6px; font-size: 11px; }
+.trajectory-below, .trajectory-target-error { color: var(--error-ink); }
+.trajectory-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 14px 0 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--line);
+}
+.trajectory-stat { min-width: 0; padding: 10px 12px; background: var(--surface-muted); }
+.trajectory-stat dt, .trajectory-stat time, .trajectory-stat-note { color: var(--muted); font-size: 11px; }
+.trajectory-stat dd { margin: 5px 0 0; }
+.trajectory-stat strong { display: block; font: 500 clamp(14px, 2vw, 19px)/1.25 var(--mono); overflow-wrap: anywhere; }
+.trajectory-stat time, .trajectory-stat-note { display: block; margin-top: 4px; }
+.trajectory-plot { margin-top: 12px; cursor: crosshair; border-radius: 3px; }
+.trajectory-plot svg { display: block; }
+.trajectory-grid { stroke: var(--line); }
+.trajectory-axis { fill: var(--muted); font: 10px var(--mono); }
+.trajectory-buffer-line { stroke: var(--error-ink); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.trajectory-balance-line { stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.trajectory-cursor { stroke: var(--line-strong); stroke-dasharray: 3 4; }
+.trajectory-dot { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
+.trajectory-footer { display: flex; gap: 7px 14px; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--muted); font-size: 11px; }
+.trajectory-readout { margin-right: auto; color: var(--ink); font-family: var(--mono); }
+.trajectory-legend { display: inline-flex; gap: 5px; align-items: center; }
+.trajectory-legend i { width: 16px; border-top: 2px solid var(--accent); }
+.trajectory-buffer-legend i { border-top: 2px dashed var(--error-ink); }
 .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
 .section-heading h2, .section-heading h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; font-weight: 500; letter-spacing: -.1px; }
 .count-badge { padding: 3px 5px; border-radius: 3px; font: 9px/1.2 var(--mono); color: var(--muted); background: var(--surface-muted); }
@@ -166,6 +220,7 @@
   .day-select { padding: 8px 5px; }
 }
 @media (max-width: 480px) {
+  .trajectory-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .event-amount-row { grid-template-columns: 1fr; }
   .finance-main { padding: 16px 4% 30px; }
   .finance-title-row h1 { font-size: 22px; }

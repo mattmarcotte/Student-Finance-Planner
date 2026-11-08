@@ -3,13 +3,14 @@
 import { useMemo, useState } from "react";
 import { accountForecast, addMonths, calendarDays, dateLabel, money, occursOn, recurrenceLabel, toCents, validDate } from "@/lib/finance";
 import type { Account, CashFlow, WorkspaceActions } from "@/lib/finance-types";
+import { BalanceTrajectory } from "./balance-trajectory";
 import { AccountForm, EventForm, ScheduleList } from "./workspace-forms";
 
 type Modal = { type: "account"; account?: Account } | { type: "event"; date: string; event?: CashFlow } | { type: "schedules" } | null;
 
-export function FinanceWorkspace({ initialAccounts, initialEvents, today, currency, timezone, actions }: {
+export function FinanceWorkspace({ initialAccounts, initialEvents, today, currency, timezone, userId, actions }: {
   initialAccounts: Account[]; initialEvents: CashFlow[]; today: string; currency: string;
-  timezone: string; actions: WorkspaceActions;
+  timezone: string; userId: string; actions: WorkspaceActions;
 }) {
   const [accounts, setAccounts] = useState(initialAccounts);
   const [events, setEvents] = useState(initialEvents);
@@ -23,7 +24,9 @@ export function FinanceWorkspace({ initialAccounts, initialEvents, today, curren
   const days = useMemo(() => calendarDays(month), [month]);
   const selectedEvents = scopedEvents.filter(e => e.account_id && occursOn(e, selectedDate));
   const unassigned = events.filter(e => !e.account_id);
-  const accountBalances = accounts.map(account => ({ account, forecast: accountForecast(account, events, selectedDate) }));
+  const accountBalances = useMemo(() => accounts.map(account => ({
+    account, forecast: accountForecast(account, events, selectedDate),
+  })), [accounts, events, selectedDate]);
   const groups = [...new Set(scopedAccounts.map(a => a.currency))].map(code => {
     const entries = accountBalances.filter(e => e.account.currency === code && scopedAccounts.some(a => a.id === e.account.id));
     return {
@@ -32,6 +35,8 @@ export function FinanceWorkspace({ initialAccounts, initialEvents, today, curren
       opening: entries.reduce((sum, e) => sum + (e.forecast?.opening ?? 0n), 0n),
       income: entries.reduce((sum, e) => sum + (e.forecast?.income ?? 0n), 0n),
       expenses: entries.reduce((sum, e) => sum + (e.forecast?.expenses ?? 0n), 0n),
+      interest: entries.reduce((sum, e) => sum + (e.forecast?.interest ?? 0n), 0n),
+      hasInterest: entries.some(e => Number(e.account.annual_interest_rate) > 0),
     };
   });
   const monthTitle = new Intl.DateTimeFormat("en-CA", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${month}T00:00:00Z`));
@@ -64,6 +69,7 @@ export function FinanceWorkspace({ initialAccounts, initialEvents, today, curren
       <div className="finance-title-row"><h1>Dashboard</h1><button className="solid-button" type="button" onClick={() => setModal({ type: "event", date: selectedDate })} disabled={!accounts.length}><span aria-hidden="true">＋</span> Add event</button></div>
       <div className="workspace-notice" role="status" aria-live="polite">{notice}</div>
       {unassigned.length > 0 && <div className="assignment-note">{unassigned.length} {unassigned.length === 1 ? "event needs" : "events need"} an account before they can affect forecasts. <button type="button" className="inline-link" disabled={!accounts.length} onClick={() => setModal({ type: "event", date: unassigned[0].start_date, event: unassigned[0] })}>Assign an account ↗</button></div>}
+      <BalanceTrajectory accounts={scopedAccounts} events={scopedEvents} today={today} preferredCurrency={currency} userId={userId} scope={accountFilter} />
       <div className="finance-layout">
         <aside className="accounts-panel" aria-labelledby="accounts-heading">
           <div className="section-heading"><h2 id="accounts-heading">Accounts <span className="count-badge">{accounts.length}</span></h2><button className="icon-button" type="button" aria-label="Add account" title="Add account" onClick={() => setModal({ type: "account" })}>＋</button></div>
@@ -98,10 +104,12 @@ export function FinanceWorkspace({ initialAccounts, initialEvents, today, curren
           <div className="section-heading"><h2 id="forecast-heading">Forecast</h2></div>
           <label className="jump-to-date">Date<input type="date" min="0001-01-01" max="9999-12-31" value={selectedDate} onChange={e => selectDate(e.target.value)} aria-label="Forecast date" /></label>
           <div className="forecast-summary" aria-live="polite" aria-atomic="true"><span className="small-label">END-OF-DAY BALANCE</span><p className="forecast-scope">{accountFilter === "all" ? `${accounts.length} ${accounts.length === 1 ? "account" : "accounts"}` : scopedAccounts[0]?.name}</p>
-            {groups.length === 0 ? <p className="forecast-empty">Add an account to calculate balances.</p> : groups.map(group => <div key={group.currency} className="forecast-currency"><span className="currency-tag">{group.currency}</span><strong className={`forecast-amount ${!group.missing && group.balance < 0n ? "negative" : ""}`}>{group.missing ? "—" : money(group.balance, group.currency)}</strong>{group.missing ? <p className="field-help">{group.missing} {group.missing === 1 ? "account has" : "accounts have"} a starting balance after this date. Choose a later date or update its balance date.</p> : <dl className="forecast-breakdown"><div><dt>Starting balances</dt><dd>{money(group.opening, group.currency)}</dd></div><div><dt>Planned income</dt><dd className="positive">+{money(group.income, group.currency)}</dd></div><div><dt>Planned expenses</dt><dd>−{money(group.expenses, group.currency)}</dd></div></dl>}</div>)}
+            {groups.length === 0 ? <p className="forecast-empty">Add an account to calculate balances.</p> : groups.map(group => <div key={group.currency} className="forecast-currency"><span className="currency-tag">{group.currency}</span><strong className={`forecast-amount ${!group.missing && group.balance < 0n ? "negative" : ""}`}>{group.missing ? "—" : money(group.balance, group.currency)}</strong>{group.missing ? <p className="field-help">{group.missing} {group.missing === 1 ? "account has" : "accounts have"} a starting balance after this date. Choose a later date or update its balance date.</p> : <dl className="forecast-breakdown"><div><dt>Starting balances</dt><dd>{money(group.opening, group.currency)}</dd></div><div><dt>Planned income</dt><dd className="positive">+{money(group.income, group.currency)}</dd></div><div><dt>Planned expenses</dt><dd>−{money(group.expenses, group.currency)}</dd></div>
+              {group.hasInterest && <div><dt>Estimated interest</dt><dd className="positive">+{money(group.interest, group.currency)}</dd></div>}
+            </dl>}</div>)}
           </div>
           <div className="day-events-section"><div className="section-heading"><h3>Events <span className="count-badge">{selectedEvents.length}</span></h3><button type="button" className="icon-button" aria-label="Add event for selected date" disabled={!accounts.length} onClick={() => setModal({ type: "event", date: selectedDate })}>＋</button></div>{selectedEvents.length === 0 ? <p className="empty-note">No events.</p> : <div className="selected-events">{selectedEvents.map(event => <button type="button" className="selected-event" key={event.id} onClick={() => setModal({ type: "event", date: selectedDate, event })}><span><strong>{event.label}</strong><small>{accounts.find(a => a.id === event.account_id)?.name} · {recurrenceLabel(event)}</small></span><span className={event.kind === "income" ? "positive" : ""}>{event.kind === "income" ? "+" : "−"}{money(toCents(event.amount), event.currency)}</span></button>)}</div>}</div>
-          <details className="forecast-details"><summary>Calculation details</summary><p>Starting balance + active income − active expenses through this date. Events before each account’s balance date are excluded.</p><p>Currencies are totaled separately. Timezone: {timezone}.</p></details>
+          <details className="forecast-details"><summary>Calculation details</summary><p>Starting balance + active income − active expenses + estimated interest through this date. Events before each account’s balance date are excluded.</p>{groups.some(group => group.hasInterest) && <p>Simple interest accrues daily at the annual rate divided by 365, based on positive closing balances before interest. The total is rounded to cents.</p>}<p>Currencies are totaled separately. Timezone: {timezone}.</p></details>
         </aside>
       </div>
       {modal?.type === "account" && <AccountForm account={modal.account} today={today} currency={currency} eventCount={events.filter(e => e.account_id === modal.account?.id).length} actions={actions} onClose={() => setModal(null)} onSaved={accountSaved} onDeleted={accountDeleted} />}

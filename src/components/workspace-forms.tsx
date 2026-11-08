@@ -55,6 +55,7 @@ export function AccountForm({ account, today, currency, eventCount, actions, onC
         id: account?.id, name: String(form.get("name")), kind: String(form.get("kind")),
         currency: account?.currency ?? String(form.get("currency")),
         opening_balance: String(form.get("opening_balance")), balance_date: String(form.get("balance_date")),
+        annual_interest_rate: String(form.get("annual_interest_rate") ?? ""),
       });
       if (result.error) setError(result.error);
       else if (result.data) onSaved(result.data);
@@ -83,6 +84,20 @@ export function AccountForm({ account, today, currency, eventCount, actions, onC
           <label>Starting balance<input name="opening_balance" type="number" step="0.01" required defaultValue={account?.opening_balance ?? "0.00"} /></label>
           <label>Balance starts on<input name="balance_date" type="date" min="0001-01-01" max="9999-12-31" required defaultValue={account?.balance_date ?? today} /></label>
           <p className="field-help">Balance at the start of this date, before scheduled events. Earlier events are excluded.</p>
+          <label>
+            Annual interest rate (%)
+            <input
+              name="annual_interest_rate"
+              type="number"
+              min="0"
+              max="100"
+              step="0.001"
+              placeholder="0"
+              defaultValue={account?.annual_interest_rate || ""}
+              aria-describedby="interest-rate-help"
+            />
+          </label>
+          <p className="field-help" id="interest-rate-help">Optional. Estimates simple interest daily on positive balances.</p>
           {account && <p className="field-help">Account currency cannot be changed.</p>}
           {confirmDelete && <div className="delete-warning"><strong>Delete {account?.name}?</strong><p>This permanently removes the account and its {eventCount} event {eventCount === 1 ? "schedule" : "schedules"}.</p><div className="button-row"><button type="button" className="danger-button" onClick={remove}>Confirm delete</button><button type="button" className="subtle-button" onClick={() => setConfirmDelete(false)}>Keep account</button></div></div>}
         </fieldset>

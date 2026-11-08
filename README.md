@@ -114,6 +114,9 @@ Google sign-in disabled, and the dashboard remains inaccessible.
 - Edit an account's name, type, starting balance, and balance date. Currency stays
   fixed after creation. Deleting an account requires confirmation and also deletes
   its linked schedules.
+- Enter an optional annual interest rate for each account. Forecasts add simple
+  interest daily on positive closing balances after scheduled events, using the
+  annual rate divided by 365. The forecast shows estimated interest separately.
 - A starting balance is the balance at the **start** of its date, before that day's
   planned events. Updating it rebases the forecast. Dates before that baseline
   show an unavailable forecast rather than an invented historical balance.
@@ -143,7 +146,7 @@ The server paginates account/event reads to avoid the Data API's per-request cap
 Data is persisted in Supabase, not local storage. Browser state updates only after
 a successful save. Reloading fetches saved records; other browser tabs see changes
 on reload. Calendar dates use the profile's timezone, currently UTC by default.
-Plaid, automatic bank syncing, transfers, percentage interest, and exchange-rate
+Plaid, automatic bank syncing, transfers, and exchange-rate
 conversion are not part of this version.
 
 Database setup is documented in [`supabase/README.md`](supabase/README.md).
