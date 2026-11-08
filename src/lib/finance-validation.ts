@@ -1,5 +1,5 @@
 import { accountKinds, currencies, endOfMonth, toCents, validDate } from "./finance.ts";
-import type { AccountInput, CashFlowInput, RepeatUnit } from "./finance-types.ts";
+import type { AccountInput, CashFlow, CashFlowInput, RepeatUnit } from "./finance-types.ts";
 
 export class InputError extends Error {}
 
@@ -86,5 +86,5 @@ export function validateCashFlow(input: CashFlowInput) {
     repeat_every: input.repeat_unit ? input.repeat_every : null,
     end_date: end,
     is_active: input.is_active,
-  };
+  } satisfies Omit<CashFlow, "id" | "currency">;
 }

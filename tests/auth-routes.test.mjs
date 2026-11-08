@@ -45,11 +45,34 @@ test("welcome, login, and signup screens are reachable", async () => {
 });
 
 test("signed-out visitors cannot read the dashboard", async () => {
-  const response = await fetch(`${origin}/dashboard`, { redirect: "manual" });
-  assert.equal(response.status, 307);
-  assert.equal(new URL(response.headers.get("location"), origin).pathname, "/login");
+  for (const path of ["/dashboard", "/dashboard/ask", "/dashboard/connections"]) {
+    const response = await fetch(`${origin}${path}`, { redirect: "manual" });
+    assert.equal(response.status, 307);
+    assert.equal(new URL(response.headers.get("location"), origin).pathname, "/login");
+    assert.match(response.headers.get("cache-control"), /no-store/);
+    assert.doesNotMatch(await response.text(), /Signed in as/);
+  }
+});
+
+test("Ask Buffer requires a browser session and rejects cross-site requests", async () => {
+  const request = { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" };
+  const signedOut = await fetch(`${origin}/api/ask`, request);
+  assert.ok([401, 503].includes(signedOut.status));
+  assert.match(signedOut.headers.get("cache-control"), /no-store/);
+  const quota = await fetch(`${origin}/api/ask`);
+  assert.equal(quota.status, signedOut.status);
+  assert.match(quota.headers.get("cache-control"), /no-store/);
+  const crossSite = await fetch(`${origin}/api/ask`, {
+    ...request, headers: { ...request.headers, "Sec-Fetch-Site": "cross-site" },
+  });
+  assert.equal(crossSite.status, 403);
+});
+
+test("MCP requests without a key are rejected", async () => {
+  const response = await fetch(`${origin}/api/mcp`, { method: "POST" });
+  assert.ok([401, 404].includes(response.status));
   assert.match(response.headers.get("cache-control"), /no-store/);
-  assert.doesNotMatch(await response.text(), /Signed in as/);
+  assert.equal(await response.text(), "");
 });
 
 test("a forged session cookie cannot unlock the dashboard", async () => {

@@ -144,8 +144,7 @@ select set_config('request.jwt.claims', '{}', true);
 do $$
 begin
   begin
-    perform 1 from public.profiles;
-    raise exception 'Anonymous visitor can read profiles';
+    if exists (select display_name from public.profiles) then raise exception 'Anonymous visitor can read profiles'; end if;
   exception when insufficient_privilege then null;
   end;
 end;

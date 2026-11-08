@@ -151,6 +151,66 @@ conversion are not part of this version.
 
 Database setup is documented in [`supabase/README.md`](supabase/README.md).
 
+## Ask Buffer
+
+Open **Ask Buffer** at the bottom of the dashboard to ask about balances,
+scheduled events, and forecasts. Minimize the panel to return to the full
+calendar. Buffer signs you in as usual and connects to its own MCP tools on the
+server. Ask Buffer can propose account edits and add, edit, or remove planned
+income and expenses. Review each proposal in chat before approving or dismissing
+it. Changes to recurring events apply to the whole schedule. The chat keeps
+recent turns in the open page and sends the
+question and relevant tool results to Google Gemini after you opt in. Buffer does
+not save chat transcripts to Supabase. The daily limit is 20 submitted questions
+per signed-in user, resetting at midnight UTC. The chat displays the remaining
+message count.
+
+Set `GEMINI_API_KEY` in `.env.local` for development or in Vercel's server
+environment for a deployment. `GEMINI_MODEL` defaults to `gemini-3.5-flash`.
+Restart or redeploy after changing either variable. The
+[Ask Buffer usage migration](supabase/migrations/20261108065123_ask_buffer_usage.sql)
+and [remaining count migration](supabase/migrations/20261108070815_ask_buffer_remaining.sql)
+are already applied to the linked Supabase project. For real financial data, review the
+[Gemini API terms](https://ai.google.dev/gemini-api/terms?authuser=00), including
+the paid-service data handling and age requirements.
+
+## Connect an external AI client
+
+Buffer exposes a Streamable HTTP MCP endpoint at `/api/mcp`. It lets a connected
+client read your Buffer profile, list accounts and scheduled events, and calculate
+an account forecast. An edit-enabled key also lets it update account details.
+
+1. Use a Supabase project with the [MCP database migration](supabase/migrations/20261108061607_buffer_mcp_access.sql).
+   The existing Buffer project already has it.
+2. Generate a deployment secret with `openssl rand -hex 32` and set it as
+   `BUFFER_MCP_SECRET` in `.env.local` or in Vercel, then restart or redeploy.
+3. Sign in to Buffer and choose **Ask Buffer** → **External MCP connection** →
+   **Create key**. Leave **Allow account
+   edits** unchecked for a read-only connection. Copy the key when it appears.
+4. Configure your MCP client to send that key as an `Authorization: Bearer` header.
+
+For [Codex](https://learn.chatgpt.com/docs/extend/mcp?surface=cli), set
+`BUFFER_MCP_TOKEN` in the client's environment and add the following to your
+local Codex configuration. Use `http://localhost:3000/api/mcp` for local testing.
+
+```toml
+[mcp_servers.buffer]
+url = "https://bufferfinanceplanner.vercel.app/api/mcp"
+bearer_token_env_var = "BUFFER_MCP_TOKEN"
+default_tools_approval_mode = "writes"
+```
+
+Try “Summarize my scheduled income and expenses and forecast my savings balance
+for next month.” The MCP tools return structured data and the connected client
+writes the summary. Forecast dates are limited to five years from each account's
+starting balance date.
+
+Buffer issues one key per user, expires it after 30 days, and lets you replace or
+revoke it from the MCP screen. Keep the key in your client's secret configuration.
+Data returned by a tool is shared with the client you connected. If localhost and
+Vercel share a Supabase project, issuing a key on either deployment replaces the
+same user's existing key. Use the key with the deployment that issued it.
+
 ## Checks
 
 ```sh

@@ -165,8 +165,7 @@ select set_config('request.jwt.claims', '{}', true);
 do $$
 begin
   begin
-    perform 1 from public.cash_flows;
-    raise exception 'Anonymous read succeeded';
+    if exists (select id from public.cash_flows) then raise exception 'Anonymous read succeeded'; end if;
   exception when insufficient_privilege then null;
   end;
   begin

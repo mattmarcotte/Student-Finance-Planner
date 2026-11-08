@@ -18,7 +18,7 @@
   --error-surface: #fff0eb;
   --error-line: #f1cfc5;
   --shadow: 0 14px 40px #17201206;
-  --sans: "Helvetica Neue", Arial, sans-serif;
+  --sans: Futura, "Century Gothic", "Avenir Next", "Trebuchet MS", sans-serif;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 

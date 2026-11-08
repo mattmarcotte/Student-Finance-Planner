@@ -18,6 +18,16 @@ files. All are already installed on the project; do not run them again there. Be
 the Supabase CLI for future changes, link the project and pull the remote schema
 and migration history so that local and remote histories agree.
 
+The optional Buffer MCP integration adds a separate
+[`buffer_mcp_access` migration](migrations/20261108061607_buffer_mcp_access.sql).
+It is installed on the linked project. For a new project, apply it after the
+profile, account, event, and interest schemas. `mcp_keys`
+stores one expiring key digest per Auth user. Next.js derives a server-side proof
+from the client's bearer key. Supabase row-level policies use that proof to
+resolve the owner and check edit access. The MCP endpoint uses the publishable
+key and column-level grants. Test the policy boundaries with
+[`tests/mcp_access.sql`](tests/mcp_access.sql).
+
 Supabase Auth owns identities, email addresses, credentials, and sessions.
 `public.profiles` stores the following app data:
 

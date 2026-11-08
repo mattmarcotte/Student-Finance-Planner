@@ -74,7 +74,7 @@ $$;
 reset role;
 set local role anon;
 do $$ begin
-  begin perform 1 from public.accounts; raise exception 'Anonymous account read succeeded';
+  begin if exists (select id from public.accounts) then raise exception 'Anonymous account read succeeded'; end if;
   exception when insufficient_privilege then null; end;
 end; $$;
 reset role;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import { DashboardChat } from "@/app/dashboard/ask/ask-chat";
 import { accountForecast, addMonths, calendarDays, dateLabel, money, occursOn, recurrenceLabel, toCents, validDate } from "@/lib/finance";
 import type { Account, CashFlow, WorkspaceActions } from "@/lib/finance-types";
 import { BalanceTrajectory } from "./balance-trajectory";
@@ -8,9 +9,11 @@ import { AccountForm, EventForm, ScheduleList } from "./workspace-forms";
 
 type Modal = { type: "account"; account?: Account } | { type: "event"; date: string; event?: CashFlow } | { type: "schedules" } | null;
 
-export function FinanceWorkspace({ initialAccounts, initialEvents, today, currency, timezone, userId, actions }: {
+export function FinanceWorkspace({ initialAccounts, initialEvents, today, currency, timezone, userId, actions, chat, children }: {
   initialAccounts: Account[]; initialEvents: CashFlow[]; today: string; currency: string;
   timezone: string; userId: string; actions: WorkspaceActions;
+  chat: { enabled: boolean; externalEnabled: boolean; startOpen: boolean };
+  children: ReactNode;
 }) {
   const [accounts, setAccounts] = useState(initialAccounts);
   const [events, setEvents] = useState(initialEvents);
@@ -64,7 +67,8 @@ export function FinanceWorkspace({ initialAccounts, initialEvents, today, curren
     setModal(null); setNotice("Schedule deleted.");
   }
 
-  return (
+  return <DashboardChat {...chat} onAccountUpdated={accountSaved} onEventSaved={eventSaved} onEventDeleted={eventDeleted}>
+    {children}
     <main id="main" className="finance-main">
       <div className="finance-title-row"><h1>Dashboard</h1><button className="solid-button" type="button" onClick={() => setModal({ type: "event", date: selectedDate })} disabled={!accounts.length}><span aria-hidden="true">＋</span> Add event</button></div>
       <div className="workspace-notice" role="status" aria-live="polite">{notice}</div>
@@ -116,5 +120,5 @@ export function FinanceWorkspace({ initialAccounts, initialEvents, today, curren
       {modal?.type === "event" && <EventForm event={modal.event} date={modal.date} accounts={accounts} defaultAccountId={accountFilter === "all" ? accounts[0]?.id ?? "" : accountFilter} actions={actions} onClose={() => setModal(null)} onSaved={eventSaved} onDeleted={eventDeleted} />}
       {modal?.type === "schedules" && <ScheduleList events={scopedEvents} accounts={accounts} onClose={() => setModal(null)} onEdit={event => setModal({ type: "event", date: event.start_date, event })} />}
     </main>
-  );
+  </DashboardChat>;
 }
